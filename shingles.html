@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Аналіз унікальних шинглів</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Аналіз унікальних шинглів з кроком 2</h1>
+  <input type="file" id="fileInput" accept=".txt"><br><br>
+  <button onclick="analyze()">Аналізувати</button>
+
+  <div id="output"></div>
+
+  <script>
+    let textContent = "";
+
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          textContent = e.target.result;
+        };
+        reader.readAsText(file, 'UTF-8');
+      }
+    });
+
+    function tokenize(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^\w\sа-яіїєґ]/gi, '')
+        .split(/\s+/)
+        .filter(w => w.length > 0);
+    }
+
+    function generateShingles(words, size = 2, step = 2) {
+      const shingles = [];
+      for (let i = 0; i <= words.length - size; i += step) {
+        shingles.push(words.slice(i, i + size).join(" "));
+      }
+      return shingles;
+    }
+
+    function analyze() {
+      const words = tokenize(textContent);
+      const shingles = generateShingles(words);
+      const freq = {};
+      shingles.forEach(sh => {
+        freq[sh] = (freq[sh] || 0) + 1;
+      });
+
+      const total = shingles.length;
+      const tableData = Object.entries(freq)
+        .map(([shingle, count]) => [shingle, count, (count / total).toFixed(4)])
+        .sort((a, b) => b[1] - a[1]);
+
+      let html = "<table><tr><th>Шингл</th><th>Частота</th><th>Ймовірність</th></tr>";
+      tableData.forEach(([sh, c, p]) => {
+        html += `<tr><td>${sh}</td><td>${c}</td><td>${p}</td></tr>`;
+      });
+      html += "</table>";
+      document.getElementById("output").innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>
